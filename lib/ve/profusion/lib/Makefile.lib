@@ -1,0 +1,26 @@
+#
+# BASENAME にライブラリ名 ( libhogehoge )
+# LIBOBJS  にオブジェクトファイル名 ( a.o b.o c.o ... )
+#
+# を定義した状態で include すること
+#
+
+LIBRARY		= ../../$(BASENAME).a
+
+CFLAGS          += -I../include
+CXXFLAGS        += -I../include
+
+OBJS		= $(LIBOBJS)
+
+all		: lib
+
+tags		:
+	@make -C $(PREFIX) tags
+
+clean		:
+	@rm -vf *~ *.bak *.o *.a $(LIBRARY) $(LIBOBJS)
+
+lib		: $(LIBRARY)
+
+$(LIBRARY)	: $(LIBOBJS)
+	$(AR) -rcsv $(LIBRARY) $?

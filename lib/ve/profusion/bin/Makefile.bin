@@ -1,0 +1,29 @@
+CFLAGS		+= -I$(PREFIX)/include
+CXXFLAGS	+= -I$(PREFIX)/include
+
+ifdef LIBS
+LIBDIR		= $(addprefix $(PREFIX)/lib/, $(LIBS))
+LIBFILE		= $(addsuffix .a, $(LIBDIR))
+include $(addsuffix .cfg, $(LIBDIR))
+endif
+
+all		: lib bin
+
+tags		:
+	@make -C $(PREFIX) tags
+
+lib		:
+	@(set -e; cd $(PREFIX)/lib; for i in $(LIBDIR); do make -C $${i}; done)
+
+bin		: $(BINARY)
+
+$(BINARY): %:  %.o $(OBJS) $(LIBFILE) 
+	$(CXX) -o $@ $^ $(LIBFILE) $(LDFLAGS)
+
+static		: $(LIBFILE) $(OBJS) $(addsuffix .o, $(BINARY)) $(BINARY)
+	@(set -e; for i in $(BINARY); do $(CXX) -static $(CXXFLAGS) -o $$i $${i}.o $(OBJS) $(LIBFILE) $(LDFLAGS) `$(PREFIX)/bin/mkldflags $$i`; done)
+
+clean		:
+	@rm -vf *~ *.bak *.a *.d *.o $(EXEC) $(BINARY) *.{ppm,pgm,pbm} *.mesh a.out $(EXTRA_CLEAN)
+
+include $(addsuffix .d, $(BINARY))

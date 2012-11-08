@@ -1,0 +1,39 @@
+##---- Compile
+%.o : %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+%.o : %.cc
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+%.o : %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.o : %.f
+	$(FC) $(FFLAGS) -c $< -o $@
+
+##---- make Dependency
+%.d : %.cpp
+	@(set -e; $(CXX) -MM $(CXXFLAGS) -c $< \
+	| sed 's|\($*\)\.o[ :]*|\1.o $@ : |g' > $@; \
+	[ -s $@ ] || rm -f $@)
+
+%.d : %.cc
+	@(set -e; $(CXX) -MM $(CXXFLAGS) -c $< \
+	| sed 's|\($*\)\.o[ :]*|\1.o $@ : |g' > $@; \
+	[ -s $@ ] || rm -f $@)
+
+%.d : %.c
+	@(set -e; $(CC) -MM $(CFLAGS) -c $< \
+	| sed 's|\($*\)\.o[ :]*|\1.o $@ : |g' > $@; \
+	[ -s $@ ] || rm -f $@)
+
+%.d : %.f
+	@(echo "$(@:.d=.o) : $(@:.d=.f)" > $@)
+
+##---- Dependency
+# "sinclude" (or "-include") directive simply ignores a file which does not
+# exist and cannot be remade, with no error message.
+# if your make command doesn't recognize these directives, you can use
+# "include" directive instead. 
+sinclude $(OBJ:.o=.d) $(OBJS:.o=.d) $(objects:.o=.d) $(addsuffix .d, $(BINARY))
+
